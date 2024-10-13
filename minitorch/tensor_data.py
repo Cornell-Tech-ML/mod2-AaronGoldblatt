@@ -44,8 +44,8 @@ def index_to_position(index: Index, strides: Strides) -> int:
         Position in storage
 
     """
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
+    # Calculate the position by summing the product of each index and its corresponding stride
+    return sum(index * stride for index, stride in zip(index, strides))
 
 
 def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
@@ -60,9 +60,13 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
         out_index : return index corresponding to position.
 
     """
-    # TODO: Implement for Task 2.1.
-    raise NotImplementedError("Need to implement for Task 2.1")
-
+    # Iterate over the shape in reverse order because the last dimension changes the fastest
+    for i in range(len(shape) - 1, -1, -1):
+        # Calculate the index for the current dimension
+        out_index[i] = ordinal % shape[i]
+        # Update the ordinal for the next dimension
+        ordinal = ordinal // shape[i]
+        
 
 def broadcast_index(
     big_index: Index, big_shape: Shape, shape: Shape, out_index: OutIndex
@@ -231,8 +235,10 @@ class TensorData:
             range(len(self.shape))
         ), f"Must give a position to each dimension. Shape: {self.shape} Order: {order}"
 
-        # TODO: Implement for Task 2.1.
-        raise NotImplementedError("Need to implement for Task 2.1")
+        # Create a new strides array based on the given order
+        new_strides = tuple(self._strides[i] for i in order)
+        # Return a new TensorData object with the same storage, but with the new shape and strides
+        return TensorData(self._storage, tuple(self.shape[i] for i in order), new_strides)
 
     def to_string(self) -> str:
         """Convert to string"""
