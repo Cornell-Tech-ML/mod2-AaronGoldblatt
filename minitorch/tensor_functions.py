@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import random
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 
@@ -107,8 +107,7 @@ class All(Function):
 
 # TODO: Implement for Task 2.3.
 class Mul(Function):
-    """Static class for element-wise multiplication of tensors. Used to group helper static methods for forward and backward passes of element-wise multiplication operation.
-    """
+    """Static class for element-wise multiplication of tensors. Used to group helper static methods for forward and backward passes of element-wise multiplication operation."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -146,8 +145,7 @@ class Mul(Function):
         return t1.f.mul_zip(grad_output, t2), t1.f.mul_zip(t1, grad_output)
 
 class Sigmoid(Function):
-    """Static class for sigmoid activation function. Used to group helper static methods for forward and backward passes of the sigmoid activation function.
-    """
+    """Static class for sigmoid activation function. Used to group helper static methods for forward and backward passes of the sigmoid activation function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
@@ -182,20 +180,19 @@ class Sigmoid(Function):
             
         """
         (sigmoid_t1,) = ctx.saved_values
-        return t1.f.mul_zip(
+        return grad_output.f.mul_zip(
             grad_output,
-            t1.f.mul_zip(
+            grad_output.f.mul_zip(
                 sigmoid_t1,
-                t1.f.add_zip(
-                    tensor_fromlist([1]),
-                    t1.f.neg_map(sigmoid_t1)
+                grad_output.f.add_zip(
+                    tensor([1.0]),
+                    grad_output.f.neg_map(sigmoid_t1)
                 )
             )
         )
 
 class ReLU(Function):
-    """Static class for ReLU activation function. Used to group helper static methods for forward and backward passes of the ReLU activation function.
-    """
+    """Static class for ReLU activation function. Used to group helper static methods for forward and backward passes of the ReLU activation function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
@@ -232,8 +229,7 @@ class ReLU(Function):
         return grad_output * t1.f.relu_back_zip(t1, grad_output)
 
 class Log(Function):
-    """Static class for natural logarithm function. Used to group helper static methods for forward and backward passes of the natural logarithm function.
-    """
+    """Static class for natural logarithm function. Used to group helper static methods for forward and backward passes of the natural logarithm function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
@@ -270,8 +266,7 @@ class Log(Function):
         return t1.f.log_back_zip(t1, grad_output)
 
 class Exp(Function):
-    """Static class for exponential function. Used to group helper static methods for forward and backward passes of the exponential function.
-    """
+    """Static class for exponential function. Used to group helper static methods for forward and backward passes of the exponential function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
@@ -306,14 +301,13 @@ class Exp(Function):
             
         """
         (exp_t1,) = ctx.saved_values
-        return t1.f.mul_zip(grad_output, exp_t1)
+        return grad_output.f.mul_zip(grad_output, exp_t1)
 
 class Sum(Function):
-    """Static class for sum reduction function. Used to group helper static methods for forward and backward passes of the sum reduction function.
-    """ 
+    """Static class for sum reduction function. Used to group helper static methods for forward and backward passes of the sum reduction function."""
     
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, dim: Optional[int] = None) -> Tensor:
+    def forward(ctx: Context, t1: Tensor, dim: Tensor) -> Tensor:
         """Performs forward pass of sum reduction function.
 
         Args:
@@ -328,15 +322,10 @@ class Sum(Function):
             
         """
         ctx.save_for_backward(t1.shape, dim)
-        if dim is not None:
-            # If dim is not None, we reduce along the specified dimension
-            return t1.f.add_reduce(t1, dim)
-        else:
-            # If dim is None, we reduce the entire tensor down to a scalar
-            return t1.f.add_reduce(
-                # Flatten the tensor into a 1D array
-                t1.contiguous().view(int(operators.prod(t1.shape))), 0
-            )
+        return t1.f.add_reduce(
+            t1,
+            int(dim.item())
+        )
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
@@ -353,19 +342,14 @@ class Sum(Function):
             
         """
         (shape, dim) = ctx.saved_values
-        if dim is not None:
-            # If dim is not None, return the gradient output directly
-            return grad_output
-        else:
-            # Create an output tensor filled with zeros of the same shape as the original input
-            out = grad_output.zeros(shape)
-            # Set all elements of the gradient to the value from the scalar output
-            out._tensor._storage[:] = grad_output[0]
-            return out
+        # Create an output tensor filled with zeros of the same shape as the original input
+        out = grad_output.zeros(shape)
+        # Set all elements of the gradient to the value from the scalar output
+        out._tensor._storage[:] = grad_output[0]
+        return out, 0.0
 
 class LT(Function):
-    """Static class for less than comparison function. Used to group helper static methods for forward and backward passes of the less than comparison function.
-    """
+    """Static class for less than comparison function. Used to group helper static methods for forward and backward passes of the less than comparison function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -403,8 +387,7 @@ class LT(Function):
         return zeros(t1_shape), zeros(t2_shape)
 
 class EQ(Function):
-    """Static class for equality comparison function. Used to group helper static methods for forward and backward passes of the equality comparison function.
-    """
+    """Static class for equality comparison function. Used to group helper static methods for forward and backward passes of the equality comparison function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -442,8 +425,7 @@ class EQ(Function):
         return zeros(t1_shape), zeros(t2_shape)
 
 class IsClose(Function):
-    """Static class for close comparison function. Used to group helper static methods for forward and backward passes of the close comparison function.
-    """
+    """Static class for close comparison function. Used to group helper static methods for forward and backward passes of the close comparison function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
@@ -465,8 +447,7 @@ class IsClose(Function):
     # No backward function needed for IsClose
 
 class Permute(Function):
-    """Static class for permutation function. Used to group helper static methods for forward and backward passes of the permutation function.
-    """
+    """Static class for permutation function. Used to group helper static methods for forward and backward passes of the permutation function."""
     
     @staticmethod
     def forward(ctx: Context, t1: Tensor, order: List[float]) -> Tensor:
