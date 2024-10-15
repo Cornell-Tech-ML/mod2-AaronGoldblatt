@@ -87,8 +87,11 @@ def broadcast_index(
         None
 
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    for i in range(len(shape)):
+        # Calculate the corresponding index in the big tensor based on the difference in dimensions between big_shape and shape, accounting for any extra dimensions in big_shape
+        big_tensor_i = i + len(big_shape) - len(shape)
+        # If the current dimension of shape is greater than 1, use the corresponding index from big_index, otherwise set the index to 0 because this dimension will be broadcasted (repeated along the axis)
+        out_index[i] = big_index[big_tensor_i] if shape[i] > 1 else 0
 
 
 def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
@@ -105,8 +108,33 @@ def shape_broadcast(shape1: UserShape, shape2: UserShape) -> UserShape:
         IndexingError : if cannot broadcast
 
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    # Initialize the result shape with the length of the larger shape
+    result_shape_len = max(len(shape1), len(shape2))
+    # Pad the smaller shape with ones to match the length of the larger shape
+    shape1 = (1,) * (result_shape_len - len(shape1)) + shape1
+    shape2 = (1,) * (result_shape_len - len(shape2)) + shape2
+    # Initialize an empty list to hold the result shape
+    result_shape = []
+    # Iterate over the dimensions of both shapes from left to right
+    for i in range(result_shape_len):
+        # Get the current dimension of each shape
+        dim1 = shape1[i]
+        dim2 = shape2[i]
+        # Check broadcasting rules:
+        # - If both dimensions are equal, use that dimension.
+        # - If one dimension is 1, the other dimension is used.
+        # - If neither of the above is true, broadcasting is not possible.
+        if dim1 == dim2:
+            result_shape.append(dim1)
+        elif dim1 == 1:
+            result_shape.append(dim2)  # Broadcast dim1 across dim2
+        elif dim2 == 1:
+            result_shape.append(dim1)  # Broadcast dim2 across dim1
+        else:
+            # Raise error if dimensions cannot be broadcasted
+            raise IndexingError(f"Cannot broadcast shapes {shape1} and {shape2}")
+    # Return the result shape as a tuple
+    return tuple(result_shape)
 
 
 def strides_from_shape(shape: UserShape) -> UserStrides:
