@@ -261,21 +261,37 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
+        """Applies a function element-wise to input tensor, storing results in output tensor. Handles broadcasting if input and output shapes differ.
+
+        Args:
+        ----
+            out: Storage for the output tensor.
+            out_shape: Shape of the output tensor.
+            out_strides: Strides of the output tensor.
+            in_storage: Storage for the input tensor.
+            in_shape: Shape of the input tensor.
+            in_strides: Strides of the input tensor.
+
+        Returns:
+        -------
+            None. Results are stored in-place in the `out` storage.
+
+        """
         # TODO: Implement for Task 2.3.
         # Initialize the indices for the output and input tensors as lists of zeros the same length as the shape
         out_index = [0] * len(out_shape)
         in_index = [0] * len(in_shape)
-        for out_pos in range(len(out)):
+        for out_position in range(len(out)):
             # Convert the output position to an index in the output tensor
-            to_index(out_pos, out_shape, out_index)
+            to_index(out_position, out_shape, out_index)
             # Broadcast the output index to the input shape to obtain the corresponding input tensor's index to the current output index
             broadcast_index(out_index, out_shape, in_shape, in_index)
             # Calculate the position in the 1D lower-level storage of the input tensor
-            in_storage_pos = index_to_position(in_index, in_strides)
+            in_storage_position = index_to_position(in_index, in_strides)
             # Calculate the position in the 1D lower-level storage of the output tensor
-            out_storage_pos = index_to_position(out_index, out_strides)
+            out_storage_position = index_to_position(out_index, out_strides)
             # Apply the function to the data at the input and output positions and store the result in the output tensor
-            out[out_storage_pos] = fn(in_storage[in_storage_pos])
+            out[out_storage_position] = fn(in_storage[in_storage_position])
 
     return _map
 
@@ -319,24 +335,43 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
+        """Applies a binary function element-wise to two input tensors, storing results in a single output tensor. Handles broadcasting if input shapes differ from the output shape.
+
+        Args:
+        ----
+            out: Storage for the output tensor.
+            out_shape: Shape of the output tensor.
+            out_strides: Strides of the output tensor.
+            a_storage: Storage for the first input tensor.
+            a_shape: Shape of the first input tensor.
+            a_strides: Strides of the first input tensor.
+            b_storage: Storage for the second input tensor.
+            b_shape: Shape of the second input tensor.
+            b_strides: Strides of the second input tensor.
+
+        Returns:
+        -------
+            None. Results are stored in-place in the `out` storage.
+            
+        """
         # TODO: Implement for Task 2.3.
         # Initialize the indices for the output and both input tensors as lists of zeros the same length as the shape
         a_index = [0] * len(a_shape)
         b_index = [0] * len(b_shape)
         out_index = [0] * len(out_shape)
-        for out_pos in range(len(out)):
+        for out_position in range(len(out)):
             # Convert the output position to an index in the output tensor
-            to_index(out_pos, out_shape, out_index)
+            to_index(out_position, out_shape, out_index)
             # Broadcast the output index to both of the input tensors' shapes to obtain each input tensor's index to the current output index
             broadcast_index(out_index, out_shape, a_shape, a_index)
             broadcast_index(out_index, out_shape, b_shape, b_index)
             # Calculate the position in the 1D lower-level storage of each input tensor
-            a_storage_pos = index_to_position(a_index, a_strides)
-            b_storage_pos = index_to_position(b_index, b_strides)
+            a_storage_position = index_to_position(a_index, a_strides)
+            b_storage_position = index_to_position(b_index, b_strides)
             # Calculate the position in the 1D lower-level storage of the output tensor
-            out_storage_pos = index_to_position(out_index, out_strides)
+            out_storage_position = index_to_position(out_index, out_strides)
             # Apply the function to the data of both input tensors and store the result in the output tensor
-            out[out_storage_pos] = fn(a_storage[a_storage_pos], b_storage[b_storage_pos])
+            out[out_storage_position] = fn(a_storage[a_storage_position], b_storage[b_storage_position])
 
     return _zip
 
@@ -366,26 +401,43 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
+        """Applies a reduction function along a specified dimension of the input tensor.The output tensor will have the same shape as the input tensor, except the dimension being reduced will have size 1.
+
+        Args:
+        ----
+            out: Storage for the output tensor.
+            out_shape: Shape of the output tensor.
+            out_strides: Strides of the output tensor.
+            a_storage: Storage for the input tensor.
+            a_shape: Shape of the input tensor.
+            a_strides: Strides of the input tensor.
+            reduce_dim: The dimension along which to reduce.
+
+        Returns:
+        -------
+            None. Results are stored in-place in the `out` storage.
+            
+        """
         # TODO: Implement for Task 2.3.
         # Initialize an index for the output tensor, with the same length as its shape
         out_index = [0] * len(out_shape)
         # Initialize an offset for the input tensor, to handle the current position in the reduction dimension
         offset = [0] * len(a_shape)
-        for out_pos in range(len(out)):
+        for out_position in range(len(out)):
             # Convert the output position to an index in the output tensor
-            to_index(out_pos, out_shape, out_index)
+            to_index(out_position, out_shape, out_index)
             # Compute the corresponding storage position in the 1D representation of the output tensor
-            out_storage_pos = index_to_position(out_index, out_strides)
+            out_storage_position = index_to_position(out_index, out_strides)
             # Perform the reduction operation over the specified dimension of the input tensor
-            for reduce_pos in range(a_shape[reduce_dim]):
+            for reduce_position in range(a_shape[reduce_dim]):
                 # Convert the linear position in the reduction dimension to a multi-dimensional index
-                to_index(reduce_pos, a_shape, offset)
+                to_index(reduce_position, a_shape, offset)
                 # Combine the output index with the current offset to get the input index, the current position in the input tensor's dimensions
                 a_index = offset + out_index
                 # Compute the corresponding storage position in the 1D representation of the input tensor
-                a_storage_pos = index_to_position(a_index, a_strides)
+                a_storage_position = index_to_position(a_index, a_strides)
                 # Apply the reduction function to the current output value and the corresponding input value storing it in the output tensor's current position, which will be done over the entire reduction dimension accumulating all of its values at the output tensor's current position
-                out[out_storage_pos] = fn(a_storage[a_storage_pos], out[out_storage_pos])
+                out[out_storage_position] = fn(a_storage[a_storage_position], out[out_storage_position])
 
     return _reduce
 

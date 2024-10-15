@@ -107,90 +107,413 @@ class All(Function):
 
 # TODO: Implement for Task 2.3.
 class Mul(Function):
+    """Static class for element-wise multiplication of tensors. Used to group helper static methods for forward and backward passes of element-wise multiplication operation.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of element-wise multiplication.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: First input tensor.
+            t2: Second input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of element-wise multiplication.
+            
+        """
+        ctx.save_for_backward(t1, t2)
+        return t1.f.mul_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        pass
+        """Performs backward pass of element-wise multiplication.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]: Gradients with respect to inputs t1 and t2.
+            
+        """
+        (t1, t2) = ctx.saved_values
+        return t1.f.mul_zip(grad_output, t2), t1.f.mul_zip(t1, grad_output)
 
 class Sigmoid(Function):
+    """Static class for sigmoid activation function. Used to group helper static methods for forward and backward passes of the sigmoid activation function.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of sigmoid activation function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: Input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of sigmoid activation function.
+            
+        """
+        sigmoid_t1 = t1.f.sigmoid_map(t1)
+        ctx.save_for_backward(sigmoid_t1)
+        return sigmoid_t1
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        pass
+        """Performs backward pass of sigmoid activation function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tensor: Gradient of the loss with respect to the input.
+            
+        """
+        (sigmoid_t1,) = ctx.saved_values
+        return t1.f.mul_zip(
+            grad_output,
+            t1.f.mul_zip(
+                sigmoid_t1,
+                t1.f.add_zip(
+                    tensor_fromlist([1]),
+                    t1.f.neg_map(sigmoid_t1)
+                )
+            )
+        )
 
 class ReLU(Function):
+    """Static class for ReLU activation function. Used to group helper static methods for forward and backward passes of the ReLU activation function.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of ReLU activation function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: Input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of ReLU activation function.
+            
+        """
+        ctx.save_for_backward(t1)
+        return t1.f.relu_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        pass
+        """Performs backward pass of ReLU activation function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tensor: Gradient of the loss with respect to the input.
+            
+        """
+        (t1,) = ctx.saved_values
+        return grad_output * t1.f.relu_back_zip(t1, grad_output)
 
 class Log(Function):
+    """Static class for natural logarithm function. Used to group helper static methods for forward and backward passes of the natural logarithm function.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of natural logarithm function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: Input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of natural logarithm function.
+            
+        """
+        ctx.save_for_backward(t1)
+        return t1.f.log_map(t1)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        pass
+        """Performs backward pass of natural logarithm function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tensor: Gradient of the loss with respect to the input.
+            
+        """
+        (t1,) = ctx.saved_values
+        return t1.f.log_back_zip(t1, grad_output)
 
 class Exp(Function):
+    """Static class for exponential function. Used to group helper static methods for forward and backward passes of the exponential function.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of exponential function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: Input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of exponential function.
+            
+        """
+        exp_t1 = t1.f.exp_map(t1)
+        ctx.save_for_backward(exp_t1)
+        return exp_t1
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        pass
+        """Performs backward pass of exponential function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tensor: Gradient of the loss with respect to the input.
+            
+        """
+        (exp_t1,) = ctx.saved_values
+        return t1.f.mul_zip(grad_output, exp_t1)
 
 class Sum(Function):
+    """Static class for sum reduction function. Used to group helper static methods for forward and backward passes of the sum reduction function.
+    """ 
+    
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, dim: Tensor) -> Tensor:
-        pass
+    def forward(ctx: Context, t1: Tensor, dim: Optional[int] = None) -> Tensor:
+        """Performs forward pass of sum reduction function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: Input tensor.
+            dim: Dimension along which to reduce.
+
+        Returns:
+        -------
+            Tensor: Result of sum reduction function.
+            
+        """
+        ctx.save_for_backward(t1.shape, dim)
+        if dim is not None:
+            # If dim is not None, we reduce along the specified dimension
+            return t1.f.add_reduce(t1, dim)
+        else:
+            # If dim is None, we reduce the entire tensor down to a scalar
+            return t1.f.add_reduce(
+                # Flatten the tensor into a 1D array
+                t1.contiguous().view(int(operators.prod(t1.shape))), 0
+            )
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        pass
+        """Performs backward pass of sum reduction function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tuple[Tensor, float]: Gradients with respect to inputs t1 and dim.
+            
+        """
+        (shape, dim) = ctx.saved_values
+        if dim is not None:
+            # If dim is not None, return the gradient output directly
+            return grad_output
+        else:
+            # Create an output tensor filled with zeros of the same shape as the original input
+            out = grad_output.zeros(shape)
+            # Set all elements of the gradient to the value from the scalar output
+            out._tensor._storage[:] = grad_output[0]
+            return out
 
 class LT(Function):
+    """Static class for less than comparison function. Used to group helper static methods for forward and backward passes of the less than comparison function.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of less than comparison function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: First input tensor.
+            t2: Second input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of less than comparison function.
+            
+        """
+        ctx.save_for_backward(t1.shape, t2.shape)
+        return t1.f.lt_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        pass
+        """Performs backward pass of less than comparison function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        ------- 
+            Tuple[Tensor, Tensor]: Gradients with respect to inputs t1 and t2.
+            
+        """
+        (t1_shape, t2_shape) = ctx.saved_values
+        return zeros(t1_shape), zeros(t2_shape)
 
 class EQ(Function):
+    """Static class for equality comparison function. Used to group helper static methods for forward and backward passes of the equality comparison function.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of equality comparison function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: First input tensor.
+            t2: Second input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of equality comparison function.
+            
+        """
+        ctx.save_for_backward(t1.shape, t2.shape)
+        return t1.f.eq_zip(t1, t2)
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, Tensor]:
-        pass
+        """Performs backward pass of equality comparison function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tuple[Tensor, Tensor]: Gradients with respect to inputs t1 and t2.
+            
+        """
+        (t1_shape, t2_shape) = ctx.saved_values
+        return zeros(t1_shape), zeros(t2_shape)
 
 class IsClose(Function):
+    """Static class for close comparison function. Used to group helper static methods for forward and backward passes of the close comparison function.
+    """
+    
     @staticmethod
     def forward(ctx: Context, t1: Tensor, t2: Tensor) -> Tensor:
-        pass
+        """Performs forward pass of close comparison function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: First input tensor.
+            t2: Second input tensor.
+
+        Returns:
+        -------
+            Tensor: Result of close comparison function.
+            
+        """
+        return t1.f.is_close_zip(t1, t2)
+    
+    # No backward function needed for IsClose
 
 class Permute(Function):
+    """Static class for permutation function. Used to group helper static methods for forward and backward passes of the permutation function.
+    """
+    
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, order: Tensor) -> Tensor:
-        pass
+    def forward(ctx: Context, t1: Tensor, order: List[float]) -> Tensor:
+        """Performs forward pass of permutation function.
+
+        Args:
+        ----
+            ctx: Context object to save information for backward pass.
+            t1: Input tensor.
+            order: List of indices specifying the permutation order.
+
+        Returns:
+        -------
+            Tensor: Result of permutation function.
+            
+        """
+        ctx.save_for_backward(order)
+        return Tensor(
+            t1._tensor.permute(*order),
+            backend=t1.backend
+        )
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        pass
+        """Performs backward pass of permutation function.
+
+        Args:
+        ----
+            ctx: Context object with saved tensors from forward pass.
+            grad_output: Gradient of the loss with respect to the output.
+
+        Returns:
+        -------
+            Tuple[Tensor, float]: Gradients with respect to inputs t1 and order.
+            
+        """
+        (order,) = ctx.saved_values
+        # Create a new list to store the inverse permutation order
+        undo_permute_order = [0] * len(order)
+        # Populate the inverse permutation order by mapping each new position to its original position
+        for original_axis_position, new_axis_position in enumerate(order):
+            undo_permute_order[new_axis_position] = original_axis_position
+        # Apply the inverse permutation to the gradient output
+        return Tensor(
+            grad_output._tensor.permute(*undo_permute_order),
+            backend=grad_output.backend
+        )
 
 class View(Function):
     @staticmethod
