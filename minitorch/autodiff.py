@@ -179,14 +179,17 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     """
     topological_order: Iterable[Variable] = topological_sort(variable)
-    derivative_dict: Dict[int, Any] = {v.unique_id: 0 for v in topological_order}
+    derivative_dict: Dict[int, Any] = {}
     derivative_dict[variable.unique_id] = deriv
     for v in topological_order:
+        deriv = derivative_dict[v.unique_id]
         if v.is_leaf():
-            v.accumulate_derivative(derivative_dict[v.unique_id])
+            v.accumulate_derivative(deriv)
         else:
-            for parent, parent_d in v.chain_rule(derivative_dict[v.unique_id]):
-                derivative_dict[parent.unique_id] += parent_d
+            for parent, parent_d in v.chain_rule(deriv):
+                if not parent.is_constant():
+                    derivative_dict.setdefault(parent.unique_id, 0)
+                    derivative_dict[parent.unique_id] += parent_d
 
 
 @dataclass

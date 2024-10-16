@@ -582,7 +582,11 @@ class Tensor:
             Tensor: The permuted tensor.
             
         """
-        return Permute.apply(self, order)
+        return Permute.apply(
+            self,
+            # Convert the order tuple to a tensor
+            tensor(list(order))
+        )
 
     def view(self, *shape: int) -> Tensor:
         """View the tensor as a different shape, without changing the underlying data.

@@ -450,25 +450,23 @@ class Permute(Function):
     """Static class for permutation function. Used to group helper static methods for forward and backward passes of the permutation function."""
     
     @staticmethod
-    def forward(ctx: Context, t1: Tensor, order: List[float]) -> Tensor:
+    def forward(ctx: Context, t1: Tensor, order: Tensor) -> Tensor:
         """Performs forward pass of permutation function.
 
         Args:
         ----
             ctx: Context object to save information for backward pass.
             t1: Input tensor.
-            order: List of indices specifying the permutation order.
+            order: Tensor containing the permutation order.
 
         Returns:
         -------
             Tensor: Result of permutation function.
             
         """
-        ctx.save_for_backward(order)
-        return Tensor(
-            t1._tensor.permute(*order),
-            backend=t1.backend
-        )
+        order_list = order.to_numpy().astype(int).tolist()
+        ctx.save_for_backward(order_list)
+        return t1._new(t1._tensor.permute(*order_list))
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
@@ -484,17 +482,14 @@ class Permute(Function):
             Tuple[Tensor, float]: Gradients with respect to inputs t1 and order.
             
         """
-        (order,) = ctx.saved_values
+        (order_list,) = ctx.saved_values
         # Create a new list to store the inverse permutation order
-        undo_permute_order = [0] * len(order)
+        undo_permute_order = [0] * len(order_list)
         # Populate the inverse permutation order by mapping each new position to its original position
-        for original_axis_position, new_axis_position in enumerate(order):
+        for original_axis_position, new_axis_position in enumerate(order_list):
             undo_permute_order[new_axis_position] = original_axis_position
         # Apply the inverse permutation to the gradient output
-        return Tensor(
-            grad_output._tensor.permute(*undo_permute_order),
-            backend=grad_output.backend
-        )
+        return grad_output._new(grad_output._tensor.permute(*undo_permute_order)), 0.0
 
 class View(Function):
     @staticmethod
