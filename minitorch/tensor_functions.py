@@ -341,12 +341,8 @@ class Sum(Function):
             Tuple[Tensor, float]: Gradients with respect to inputs t1 and dim.
             
         """
-        (shape, dim) = ctx.saved_values
-        # Create an output tensor filled with zeros of the same shape as the original input
-        out = grad_output.zeros(shape)
-        # Set all elements of the gradient to the value from the scalar output
-        out._tensor._storage[:] = grad_output[0]
-        return out, 0.0
+        shape, dim = ctx.saved_values
+        return grad_output, 0.0
 
 class LT(Function):
     """Static class for less than comparison function. Used to group helper static methods for forward and backward passes of the less than comparison function."""
