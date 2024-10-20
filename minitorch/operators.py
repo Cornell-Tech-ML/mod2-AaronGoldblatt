@@ -4,7 +4,7 @@ import math
 
 
 # ## Task 0.1
-from typing import Any, Callable, Iterable, List, Optional, TypeVar
+from typing import Any, Callable, Iterable, Optional, TypeVar
 
 #
 # Implementation of a prelude of elementary functions.
@@ -364,7 +364,7 @@ def reduce(
 
 
 # List functions built using higher-order functions and simpler operators
-def negList(numbers: List[float]) -> List[float]:
+def negList(numbers: Iterable[float]) -> Iterable[float]:
     """Return a new list of floats with each float of the input list negated.
 
     Args:
@@ -379,7 +379,7 @@ def negList(numbers: List[float]) -> List[float]:
     return list(map(neg)(numbers))
 
 
-def addLists(list1: List[float], list2: List[float]) -> List[float]:
+def addLists(list1: Iterable[float], list2: Iterable[float]) -> Iterable[float]:
     """Return a new list of floats consisting of each float of the input list `list1` added to the corresponding float of the input list `list2`.
 
     Args:
@@ -395,7 +395,7 @@ def addLists(list1: List[float], list2: List[float]) -> List[float]:
     return list(zipWith(add)(list1, list2))
 
 
-def sum(numbers: List[float]) -> float:
+def sum(numbers: Iterable[float]) -> float:
     """Return the sum of all the float elements in a list.
 
     Args:
@@ -410,7 +410,7 @@ def sum(numbers: List[float]) -> float:
     return reduce(add, 0.0)(numbers)
 
 
-def prod(numbers: List[float]) -> float:
+def prod(numbers: Iterable[float]) -> float:
     """Return the product of all the float elements in a list.
 
     Args:
