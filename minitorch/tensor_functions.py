@@ -186,7 +186,7 @@ class All(Function):
             return a.f.mul_reduce(a.contiguous().view(int(operators.prod(a.shape))), 0)
 
 
-# TODO: Implement for Task 2.3.
+# Task 2.3.
 class Mul(Function):
     """Static class for element-wise multiplication of tensors. Used to group helper static methods for forward and backward passes of element-wise multiplication operation."""
 
@@ -223,7 +223,7 @@ class Mul(Function):
 
         """
         (t1, t2) = ctx.saved_values
-        return t1.f.mul_zip(grad_output, t2), t1.f.mul_zip(t1, grad_output)
+        return t2.f.mul_zip(t2, grad_output), t1.f.mul_zip(t1, grad_output)
 
 
 class Sigmoid(Function):
@@ -264,9 +264,9 @@ class Sigmoid(Function):
         (sigmoid_t1,) = ctx.saved_values
         return grad_output.f.mul_zip(
             grad_output,
-            grad_output.f.mul_zip(
+            sigmoid_t1.f.mul_zip(
                 sigmoid_t1,
-                grad_output.f.add_zip(tensor([1.0]), grad_output.f.neg_map(sigmoid_t1)),
+                sigmoid_t1.f.add_zip(tensor([1.0]), sigmoid_t1.f.neg_map(sigmoid_t1)),
             ),
         )
 
@@ -306,7 +306,7 @@ class ReLU(Function):
 
         """
         (t1,) = ctx.saved_values
-        return grad_output * t1.f.relu_back_zip(t1, grad_output)
+        return t1.f.relu_back_zip(t1, grad_output)
 
 
 class Log(Function):

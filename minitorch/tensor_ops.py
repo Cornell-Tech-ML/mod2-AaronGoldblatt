@@ -290,7 +290,7 @@ def tensor_map(
             None. Results are stored in-place in the `out` storage.
 
         """
-        # TODO: Implement for Task 2.3.
+        # Task 2.3.
         # Initialize the indices for the output and input tensors as lists of zeros the same length as the shape
         out_index = np.array([0] * len(out_shape), dtype=np.int32)
         in_index = np.array([0] * len(in_shape), dtype=np.int32)
@@ -369,7 +369,7 @@ def tensor_zip(
             None. Results are stored in-place in the `out` storage.
 
         """
-        # TODO: Implement for Task 2.3.
+        # Task 2.3.
         # Initialize the indices for the output and both input tensors as lists of zeros the same length as the shape
         a_index = np.array([0] * len(a_shape), dtype=np.int32)
         b_index = np.array([0] * len(b_shape), dtype=np.int32)
@@ -437,7 +437,7 @@ def tensor_reduce(
             None. Results are stored in-place in the `out` storage.
 
         """
-        # TODO: Implement for Task 2.3.
+        # Task 2.3.
         # Initialize an index for the output tensor, with the same length as its shape
         out_index = np.array([0] * len(out_shape), dtype=np.int32)
         # Get the size of the reduction dimension
